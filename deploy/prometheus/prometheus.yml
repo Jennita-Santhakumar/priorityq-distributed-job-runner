@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+# Note: the source PRD's own scrape config also lists bare postgres:5432 and
+# redis:6379 as targets. Neither speaks Prometheus's text exposition format
+# without an exporter sidecar (postgres_exporter / redis_exporter), which
+# the PRD never adds to its compose file either — scraping them directly
+# would just fail silently. Dropped here as a corrected omission; see
+# README's Design Decisions.
+scrape_configs:
+  - job_name: 'task-queue-api'
+    static_configs:
+      - targets: ['api:8080']
+        labels:
+          component: api
+
+  - job_name: 'task-queue-worker'
+    static_configs:
+      - targets: ['worker:9103']
+        labels:
+          component: worker

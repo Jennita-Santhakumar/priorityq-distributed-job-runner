@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: taskqueue
+          POSTGRES_PASSWORD: taskqueue
+          POSTGRES_DB: taskqueue
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U taskqueue -d taskqueue"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://taskqueue:taskqueue@localhost:5432/taskqueue?sslmode=disable
+      REDIS_URL: redis://localhost:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+      - name: Run migrations
+        run: go run ./cmd/migrate up
+
+      - name: Unit tests
+        run: go test -race -short ./...
+
+      - name: Integration tests
+        run: go test -race -tags=integration ./tests/integration/...
+
+      - name: Build
+        run: |
+          go build -o bin/server ./cmd/server
+          go build -o bin/worker ./cmd/worker
+          go build -o bin/migrate ./cmd/migrate
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - run: npm run build

@@ -1,0 +1,75 @@
+{
+  "title": "Task Queue Overview",
+  "uid": "task-queue-overview",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Jobs Created / Completed / Failed (rate)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(task_queue_jobs_created_total[1m]))", "legendFormat": "created" },
+        { "expr": "sum(rate(task_queue_jobs_completed_total[1m]))", "legendFormat": "completed" },
+        { "expr": "sum(rate(task_queue_jobs_failed_total[1m]))", "legendFormat": "failed" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Success Rate",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "min": 0, "max": 1, "unit": "percentunit" }, "overrides": [] },
+      "targets": [
+        {
+          "expr": "sum(rate(task_queue_jobs_completed_total[5m])) / (sum(rate(task_queue_jobs_completed_total[5m])) + sum(rate(task_queue_jobs_failed_total[5m])))",
+          "legendFormat": "success rate"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Worker Count",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 0 },
+      "targets": [
+        { "expr": "task_queue_worker_count", "legendFormat": "workers" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Processing Latency (P50 / P95 / P99)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(task_queue_processing_seconds_bucket[5m])) by (le))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, sum(rate(task_queue_processing_seconds_bucket[5m])) by (le))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(task_queue_processing_seconds_bucket[5m])) by (le))", "legendFormat": "p99" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Queue Depth by Job Type",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "task_queue_depth", "legendFormat": "{{job_type}}" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Dead Letter Queue Total",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "targets": [
+        { "expr": "task_queue_dlq_total", "legendFormat": "DLQ total" }
+      ]
+    }
+  ]
+}

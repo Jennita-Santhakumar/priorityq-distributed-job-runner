@@ -1,0 +1,15 @@
+*.o
+*.a
+*.so
+.DS_Store
+bin/
+dist/
+.env
+.env.local
+*.pem
+coverage.out
+.idea/
+.vscode/
+node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo

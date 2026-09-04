@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-queue-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: task-queue-api
+  template:
+    metadata:
+      labels:
+        app: task-queue-api
+    spec:
+      containers:
+        - name: task-queue-api
+          image: task-queue-system:latest
+          command: ["./server"]
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: task-queue-config
+          env:
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: task-queue-secrets, key: database-url } }
+            - name: REDIS_URL
+              valueFrom: { secretKeyRef: { name: task-queue-secrets, key: redis-url } }
+          readinessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-queue-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: task-queue-worker
+  template:
+    metadata:
+      labels:
+        app: task-queue-worker
+    spec:
+      containers:
+        - name: task-queue-worker
+          image: task-queue-system:latest
+          command: ["./worker"]
+          ports:
+            - containerPort: 9103
+          envFrom:
+            - configMapRef:
+                name: task-queue-config
+          env:
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: task-queue-secrets, key: database-url } }
+            - name: REDIS_URL
+              valueFrom: { secretKeyRef: { name: task-queue-secrets, key: redis-url } }
