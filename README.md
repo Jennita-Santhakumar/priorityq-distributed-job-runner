@@ -1,5 +1,7 @@
 # Distributed Task Queue System
 
+> **Maintained by [Jennita S](https://github.com/Jennita-Santhakumar)** · [LinkedIn](https://linkedin.com/in/jennitas) · jennitasanthakumar0@gmail.com
+
 A production-grade distributed task queue: a Go REST API for submitting jobs, a Redis-backed
 priority queue, a worker pool with exponential-backoff retry and a dead-letter queue, PostgreSQL
 for durable job state and audit history, Prometheus + Grafana for monitoring, and a small React
@@ -242,3 +244,7 @@ disintegration/imaging.
 
 **Infrastructure**: PostgreSQL 16, Redis 7, Prometheus, Grafana, Docker Compose, GitHub Actions,
 Kubernetes manifests (reference-only).
+
+## Credits
+
+Developed by Kabilesh Rajaselvan with contributions from Jennita S.
